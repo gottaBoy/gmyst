@@ -32,20 +32,45 @@ Traceback:
 */
 
 import (
-	"gmyst/gmyst"
+	"fmt"
+	"gmyst/gmystcache"
+	"log"
 	"net/http"
 )
 
-func main() {
-	r := gmyst.Default()
-	r.GET("/", func(c *gmyst.Context) {
-		c.String(http.StatusOK, "Hello gmyst\n")
-	})
-	// index out of range for testing Recovery()
-	r.GET("/panic", func(c *gmyst.Context) {
-		names := []string{"gmyst"}
-		c.String(http.StatusOK, names[100])
-	})
+//func main() {
+//	r := gmyst.Default()
+//	r.GET("/", func(c *gmyst.Context) {
+//		c.String(http.StatusOK, "Hello gmyst\n")
+//	})
+//	// index out of range for testing Recovery()
+//	r.GET("/panic", func(c *gmyst.Context) {
+//		names := []string{"gmyst"}
+//		c.String(http.StatusOK, names[100])
+//	})
+//
+//	r.Run(":9999")
+//}
 
-	r.Run(":9999")
+var db = map[string]string{
+	"Tom":  "630",
+	"Jack": "589",
+	"Sam":  "567",
+}
+
+// curl http://localhost:9999/_gmystcache/scores/Tom
+func main() {
+	gmystcache.NewGroup("scores", 2<<10, gmystcache.GetterFunc(
+		func(key string) ([]byte, error) {
+			log.Println("[SlowDB] search key", key)
+			if v, ok := db[key]; ok {
+				return []byte(v), nil
+			}
+			return nil, fmt.Errorf("%s not exist", key)
+		}))
+
+	addr := "localhost:9999"
+	peers := gmystcache.NewHTTPPool(addr)
+	log.Println("gmystcache is running at", addr)
+	log.Fatal(http.ListenAndServe(addr, peers))
 }
