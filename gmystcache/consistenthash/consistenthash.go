@@ -6,20 +6,21 @@ import (
 	"strconv"
 )
 
+// HashFunc used to generate a int
 type HashFunc func(data []byte) uint32
 
 type Map struct {
-	hash HashFunc
+	hash     HashFunc
 	replicas int
-	keys []int
-	hashMap map[int]string
+	keys     []int
+	hashMap  map[int]string
 }
 
-func New(replicas int,fn HashFunc) *Map  {
+func New(replicas int, fn HashFunc) *Map {
 	m := &Map{
-		hash: fn,
+		hash:     fn,
 		replicas: replicas,
-		hashMap: make(map[int]string),
+		hashMap:  make(map[int]string),
 	}
 	if m.hash == nil {
 		m.hash = crc32.ChecksumIEEE
@@ -27,7 +28,7 @@ func New(replicas int,fn HashFunc) *Map  {
 	return m
 }
 
-func (m *Map) Add(keys ...string)  {
+func (m *Map) Add(keys ...string) {
 	for _, key := range keys {
 		for i := 0; i < m.replicas; i++ {
 			hash := int(m.hash([]byte(strconv.Itoa(i) + key)))
