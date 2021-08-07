@@ -32,6 +32,7 @@ Traceback:
 */
 
 import (
+	"flag"
 	"fmt"
 	"gmyst/gmystcache"
 	"log"
@@ -59,8 +60,16 @@ var db = map[string]string{
 }
 
 // curl http://localhost:9999/_gmystcache/scores/Tom
-func main() {
-	gmystcache.NewGroup("scores", 2<<10, gmystcache.GetterFunc(
+//func main() {
+//	createGroup()
+//	addr := "localhost:9999"
+//	peers := gmystcache.NewHTTPPool(addr)
+//	log.Println("gmystcache is running at", addr)
+//	log.Fatal(http.ListenAndServe(addr, peers))
+//}
+
+func createGroup() *gmystcache.Group {
+	return gmystcache.NewGroup("scores", 2<<10, gmystcache.GetterFunc(
 		func(key string) ([]byte, error) {
 			log.Println("[SlowDB] search key", key)
 			if v, ok := db[key]; ok {
@@ -68,9 +77,56 @@ func main() {
 			}
 			return nil, fmt.Errorf("%s not exist", key)
 		}))
+}
 
-	addr := "localhost:9999"
+func startCacheServer(addr string, addrs []string, gee *gmystcache.Group) {
 	peers := gmystcache.NewHTTPPool(addr)
+	peers.Set(addrs...)
+	gee.RegisterPeers(peers)
 	log.Println("gmystcache is running at", addr)
-	log.Fatal(http.ListenAndServe(addr, peers))
+	log.Fatal(http.ListenAndServe(addr[7:], peers))
+}
+
+func startAPIServer(apiAddr string, gee *gmystcache.Group) {
+	http.Handle("/api", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			key := r.URL.Query().Get("key")
+			view, err := gee.Get(key)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/octet-stream")
+			w.Write(view.ByteSlice())
+
+		}))
+	log.Println("fontend server is running at", apiAddr)
+	log.Fatal(http.ListenAndServe(apiAddr[7:], nil))
+
+}
+
+func main() {
+	var port int
+	var api bool
+	flag.IntVar(&port, "port", 8001, "gmystcache server port")
+	flag.BoolVar(&api, "api", false, "Start a api server?")
+	flag.Parse()
+
+	apiAddr := "http://localhost:9999"
+	addrMap := map[int]string{
+		8001: "http://localhost:8001",
+		8002: "http://localhost:8002",
+		8003: "http://localhost:8003",
+	}
+
+	var addrs []string
+	for _, v := range addrMap {
+		addrs = append(addrs, v)
+	}
+
+	gee := createGroup()
+	if api {
+		go startAPIServer(apiAddr, gee)
+	}
+	startCacheServer(addrMap[port], addrs, gee)
 }
