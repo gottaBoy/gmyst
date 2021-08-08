@@ -7,3 +7,23 @@
 
 使用 singleflight 防止缓存击穿，实现与测试
 
+### protobuf
+protobuf 即 Protocol Buffers，Google 开发的一种数据描述语言，是一种轻便高效的结构化数据存储格式，与语言、平台无关，可扩展可序列化。protobuf 以二进制方式存储，占用空间小。
+
+### protoc
+https://geektutu.com/post/quick-go-protobuf.html
+#### 下载安装包
+$ wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.2/protoc-3.11.2-linux-x86_64.zip
+#### 解压到 /usr/local 目录下
+$ sudo 7z x protoc-3.11.2-linux-x86_64.zip -o/usr/local
+
+### protoc-gen-go
+brew install protobuf
+go get -u github.com/golang/protobuf/protoc-gen-go
+protoc --proto_path=. --go_out=. *.proto
+protoc  -I=. --go_out=plugins=grpc:. --go_opt=paths=source_relative gmystcache/gmystcachepb/*.proto
+protoc --proto_path=. --go_out=plugins=grpc,paths=source_relative:. *.proto
+
+https://cloud.tencent.com/developer/article/1768249
+https://zhuanlan.zhihu.com/p/368079374
+https://jishuin.proginn.com/p/763bfbd4ef61
