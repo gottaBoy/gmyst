@@ -27,3 +27,52 @@ protoc --proto_path=. --go_out=plugins=grpc,paths=source_relative:. *.proto
 https://cloud.tencent.com/developer/article/1768249
 https://zhuanlan.zhihu.com/p/368079374
 https://jishuin.proginn.com/p/763bfbd4ef61
+
+# ORM 框架
+数据库	面向对象的编程语言
+表(table)	类(class/struct)
+记录(record, row)	对象 (object)
+字段(field, column)	对象属性(attribute)
+
+reflect.ValueOf() 获取指针对应的反射值。
+reflect.Indirect() 获取指针指向的对象的反射值。
+(reflect.Type).Name() 返回类名(字符串)。
+(reflect.Type).Field(i) 获取第 i 个成员变量。
+
+## Go 语言中使用比较广泛 ORM 框架是 gorm 和 xorm
+https://github.com/jinzhu/gorm
+https://github.com/go-xorm/xorm
+
+### 第一天：database/sql 基础
+安装数据库 https://geektutu.com/post/cheat-sheet-sqlite.html
+```
+brew install sqlite3
+sqlite3 gmyst.db
+CREATE TABLE User(Name text, Age integer);
+INSERT INTO User(Name, Age) VALUES ("Tom", 18), ("Jack", 25);
+.head on
+# 查找 `Age > 20` 的记录；
+SELECT * FROM User WHERE Age > 20;
+# 统计记录个数。
+SELECT COUNT(*) FROM User;
+# .table 查看当前数据库中所有的表(table)，执行 .schema <table> 查看建表的 SQL 语句
+.table
+.schema User
+```
+### 第二天：对象表结构映射
+### 第三天：记录新增和查询
+### 第四天：链式操作与更新删除
+### 第五天：实现钩子(Hooks)
+### 第六天：支持事务(Transaction)
+### 第七天：数据库迁移(Migrate)
+
+# GmystRPC
+### 第一天 - 服务端与消息编码
+消息的序列化与反序列化
+
+第二天 - 支持并发与异步的客户端
+第三天 - 服务注册(service register)
+第四天 - 超时处理(timeout)
+第五天 - 支持HTTP协议
+第六天 - 负载均衡(load balance)
+第七天 - 服务发现与注册中心(registry)
